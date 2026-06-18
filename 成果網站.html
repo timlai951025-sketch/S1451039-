@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人作品集</title>
+    <style>
+        /* 全域基礎設定 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* 移除預設邊距 */
+        body {
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f8f9fa; /* 預設底色 */
+        }
+
+        /* ==================== 頁面與區塊切換設定 ==================== */
+        .page {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 全寬度的區塊包裝器 (用來實現交錯背景色) */
+        .section-wrapper {
+            width: 100%;
+            padding: 80px 0; /* 每個區塊上下的留白 */
+        }
+        
+        .bg-white { background-color: #ffffff; }
+        .bg-grey { background-color: #f4f6f9; } /* 帶有一點點冷色調的淺灰 */
+
+        /* 內容區塊置中容器 (限制最大寬度，確保內容不會太散) */
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ==================== 首頁深色橫幅標題 ==================== */
+        .hero-section {
+            height: 35vh; /* 縮小占比 */
+            width: 100%;
+            background-color: #1e3a8a; /* 深藍色 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 4px solid #3eb4f0; /* 底部加一條亮藍色飾條增加層次 */
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            color: #ffffff; /* 改為白色字體 */
+            letter-spacing: 2px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* 深色陰影 */
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.2rem; }
+        }
+
+        /* 子頁面的標題 */
+        .sub-page-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #111;
+        }
+
+        /* ==================== 卡片與排版設定 ==================== */
+        .split-container {
+            display: flex; gap: 30px; justify-content: center; align-items: stretch;
+        }
+
+        .category-card {
+            flex: 1; background: #ffffff; border-radius: 12px;
+            padding: 50px 30px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: 2px solid transparent;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: #3eb4f0;
+        }
+
+        .category-card h2 { font-size: 2rem; color: #1e3a8a; margin-bottom: 15px; }
+        .category-card p { color: #666; font-size: 1.1rem; }
+
+        @media (max-width: 768px) { .split-container { flex-direction: column; } }
+
+        /* ==================== 成果展示預覽區塊 ==================== */
+        .results-preview-section { text-align: center; }
+        
+        .results-title {
+            font-size: 1.8rem; color: #333; margin-bottom: 40px; 
+            position: relative; display: inline-block;
+        }
+        .results-title::after {
+            content: ''; display: block; width: 60px; height: 3px;
+            background-color: #3eb4f0; margin: 8px auto 0; border-radius: 2px;
+        }
+
+        .results-preview-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; padding: 10px; 
+        }
+        @media (max-width: 768px) { .results-preview-grid { grid-template-columns: 1fr; gap: 50px; } }
+
+        .preview-image-box {
+            background-color: transparent; border-radius: 8px; height: 250px;
+            position: relative; z-index: 1; transition: z-index 0.3s;
+        }
+        .preview-image-box:hover { z-index: 100; }
+
+        .preview-image-box img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 8px;
+            background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0; position: absolute; top: 0; left: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, padding 0.4s ease, border-radius 0.4s ease;
+        }
+        .preview-image-box:hover img {
+            transform: translateY(-10px) scale(1.6); object-fit: contain;
+            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.3); padding: 8px; border-radius: 12px; border: none;
+        }
+
+        /* ==================== 致謝名單展開小框 ==================== */
+        .credits-section { display: flex; justify-content: center; }
+
+        .credits-box {
+            background-color: #ffffff; padding: 15px 30px; border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); cursor: pointer; transition: all 0.3s ease;
+            width: fit-content; min-width: 200px; text-align: center; border: 1px solid #e2e8f0;
+        }
+        .credits-box:hover { box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); border-color: #3eb4f0; }
+
+        .credits-title {
+            font-size: 1.1rem; color: #1e3a8a; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 10px; user-select: none;
+        }
+        .credits-title .arrow { font-size: 0.8rem; transition: transform 0.3s ease; }
+        .credits-box.active .arrow { transform: rotate(180deg); }
+
+        .credits-content {
+            max-height: 0; overflow: hidden; opacity: 0; margin-top: 0;
+            transition: max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease;
+        }
+        .credits-content.open {
+            max-height: 200px; opacity: 1; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;
+        }
+        .credits-list { list-style: none; padding: 0; }
+        .credits-list li { padding: 5px 0; color: #555; font-size: 1rem; }
+
+        /* ==================== 細項頁面專屬樣式 ==================== */
+        .back-btn {
+            background-color: #ffffff; color: #333; border: 1px solid #ccc;
+            padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-bottom: 30px;
+            display: inline-flex; align-items: center; transition: background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .back-btn:hover { background-color: #f8f9fa; border-color: #1e3a8a; color: #1e3a8a; }
+        
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        
+        .item-card {
+            background: #ffffff; border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eaeaea; position: relative;
+        }
+
+        .item-image-box {
+            width: 100%; height: 200px; position: relative; z-index: 1; transition: z-index 0.3s;
+            background-color: #e9ecef; border-radius: 10px 10px 0 0;
+        }
+        .item-image-box:hover { z-index: 100; }
+        
+        .item-image-box img {
+            width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;
+            border-radius: 10px 10px 0 0; background-color: #ffffff;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, padding 0.4s ease, border-radius 0.4s ease;
+        }
+        .item-image-box:hover img {
+            transform: translateY(-10px) scale(1.6); object-fit: contain;
+            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.3); padding: 8px; border-radius: 12px; border: none;
+        }
+
+        .video-placeholder {
+            width: 100%; height: 200px; background-color: #1a1a1a;
+            display: flex; align-items: center; justify-content: center;
+            color: #ffffff; font-size: 1.5rem; font-weight: bold;
+            border-bottom: 1px solid #eaeaea; border-radius: 10px 10px 0 0;
+        }
+        
+        .item-content { padding: 20px; }
+        .item-content h3 { font-size: 1.3rem; margin-bottom: 10px; color: #1e3a8a; }
+        .item-content p { color: #555; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+    <div id="home-page" class="page active">
+        
+        <div class="hero-section">
+            <h1 class="hero-title">科技應用與創意實作-學期成果</h1>
+        </div>
+
+        <div class="section-wrapper bg-white">
+            <div class="content-container">
+                <div class="split-container">
+                    <div class="category-card" onclick="switchPage('prog-page')">
+                        <h2>程式開發類 💻</h2>
+                        <p>點擊查看Brain Go板與程式成果</p>
+                    </div>
+                    <div class="category-card" onclick="switchPage('craft-page')">
+                        <h2>手工藝創作類 🎨</h2>
+                        <p>點擊查看木製手作品成果</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-wrapper bg-grey">
+            <div class="content-container">
+                <div class="results-preview-section">
+                    <h3 class="results-title">成果展示</h3>
+                    <div class="results-preview-grid">
+                        <div class="preview-image-box">
+                            <img src="4.jpg" alt="測試圖 1">
+                        </div>
+                        <div class="preview-image-box">
+                            <img src="5.jpg" alt="測試圖 2">
+                        </div>
+                        <div class="preview-image-box">
+                            <img src="6.jpg" alt="測試圖 3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-wrapper bg-white">
+            <div class="content-container">
+                <div class="credits-section">
+                    <div class="credits-box" id="credits-box" onclick="toggleCredits()">
+                        <div class="credits-title">
+                            致謝名單 <span class="arrow">▼</span>
+                        </div>
+                        <div class="credits-content" id="credits-content">
+                            <ul class="credits-list">
+                                <li>孫有鵬</li>
+                                <li>林妍希</li>
+                                <li>賴竑廷</li>
+                                <li>陳浩軒</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="prog-page" class="page bg-grey">
+        <div class="section-wrapper" style="min-height: 100vh;">
+            <div class="content-container">
+                <button class="back-btn" onclick="switchPage('home-page')">⬅ 返回首頁</button>
+                <h1 class="sub-page-title">程式開發類成果</h1>
+                
+                <div class="items-grid">
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="1.jpg" alt="程式專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>蜂鳴器程式1</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="2.jpg" alt="程式專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>蜂鳴器程式2</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="3.jpg" alt="程式專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>蜂鳴器程式3</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <video src="801716135.908494.mp4" controls style="width: 100%; height: 200px; object-fit: contain; background-color: #1a1a1a; border-radius: 10px 10px 0 0;"></video>
+                        <div class="item-content">
+                            <h3>紅外線感測</h3>
+                            <p>透過紅外線感測器達成計數</p>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <video src="801716367.881588.mp4" controls style="width: 100%; height: 200px; object-fit: contain; background-color: #1a1a1a; border-radius: 10px 10px 0 0;"></video>
+                        <div class="item-content">
+                            <h3>陀螺儀</h3>
+                            <p>左右晃動陀螺儀控制音符位置</p>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <video src="801716367.965270.mp4" controls style="width: 100%; height: 200px; object-fit: contain; background-color: #1a1a1a; border-radius: 10px 10px 0 0;"></video>
+                        <div class="item-content">
+                            <h3>超音波感測</h3>
+                            <p>可以感測此零件與前方物體的距離</p>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <video src="801716367.881588.mp4" controls style="width: 100%; height: 200px; object-fit: contain; background-color: #1a1a1a; border-radius: 10px 10px 0 0;"></video>
+                        <div class="item-content">
+                            <h3>跑操場</h3>
+                            <p>符號可規律繞行</p>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <video src="802081648.696420.mp4" controls style="width: 100%; height: 200px; object-fit: contain; background-color: #1a1a1a; border-radius: 10px 10px 0 0;"></video>
+                        <div class="item-content">
+                            <h3>蜂鳴器</h3>
+                            <p>可以透過蜂鳴器演奏音樂</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="craft-page" class="page bg-grey">
+        <div class="section-wrapper" style="min-height: 100vh;">
+            <div class="content-container">
+                <button class="back-btn" onclick="switchPage('home-page')">⬅ 返回首頁</button>
+                <h1 class="sub-page-title">手工藝創作類成果</h1>
+                
+                <div class="items-grid">
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="6.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>拚木杯墊</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="7.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>打磨拚木杯墊</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="8.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>胸章圖樣</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="9.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>胸章成果1</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="4.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>胸章成果2</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="10.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>打磨雷雕杯墊1</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="11.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>打磨雷雕杯墊2</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="12.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>雷雕機程式操作</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="13.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>為杯墊上膠</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <div class="item-image-box">
+                            <img src="5.jpg" alt="手作專案">
+                        </div>
+                        <div class="item-content">
+                            <h3>雷雕杯墊成果</h3>
+                        </div>
+                    </div>
+
+                    <div class="item-card">
+                        <video src="802079510.431393.mp4" controls style="width: 100%; height: 200px; object-fit: contain; background-color: #1a1a1a; border-radius: 10px 10px 0 0;"></video>
+                        <div class="item-content">
+                            <h3>雷雕機運作過程</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchPage(targetPageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => { page.classList.remove('active'); });
+            const targetPage = document.getElementById(targetPageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function toggleCredits() {
+            const box = document.getElementById('credits-box');
+            const content = document.getElementById('credits-content');
+            box.classList.toggle('active');
+            content.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>
